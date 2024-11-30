@@ -1,3 +1,3 @@
-from .png_to_ico import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+from .p2i import PNGToICONode
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
