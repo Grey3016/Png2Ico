@@ -56,11 +56,3 @@ class PNGToICONode(ComfyNode):
 # Register the node with ComfyUI
 NODE_CLASS.register_node("PNGToICONode", PNGToICONode)
 
-NODE_CLASS_MAPPINGS = {
-    "PNGToICONode": PNGToICONode,
-}
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "PNGToICONode": "PNGToICONode",
-}
-
-
