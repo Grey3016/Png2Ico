@@ -1,3 +1,7 @@
-from .p2i import PNGToICONode
+from .p2i import ImageToIconNode
 
-__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
+NODE_CLASS_MAPPINGS = {
+    "Save2Icon" : ImageToIconNode,
+}
+
+__all__ = ['NODE_CLASS_MAPPINGS']

@@ -1,23 +1,24 @@
 import os
 from PIL import Image
-from nodes import NODE_CLASS, ComfyNode
+from nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
-# Custom node for converting PNG to ICO
-class PNGToICONode(ComfyNode):
+class ImageToIconNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "input_image_path": ("STRING", {
-                    "default": "",
-                    "placeholder": "Path to the PNG file (e.g., /path/to/image.png)"
+                "input_image": ("IMAGE",),  # Accepts an image input
+                "output_directory": ("STRING", {
+                    "default": "./outputs",
+                    "placeholder": "Directory to save the ICO file"
                 }),
-                "icon_size": ("INT", {
-                    "default": 256,
-                    "min": 16,
-                    "max": 256,
-                    "step": 16,
-                    "placeholder": "Size of the ICO icon (16, 32, 48, 256, etc.)"
+                "icon_sizes": ("STRING", {
+                    "default": "16,32,48,64,128,256",
+                    "placeholder": "Comma-separated sizes (e.g., 16,32,48,256)"
+                }),
+                "file_name": ("STRING", {
+                    "default": "output_icon",
+                    "placeholder": "Output file name (no extension)"
                 }),
             }
         }
@@ -25,33 +26,48 @@ class PNGToICONode(ComfyNode):
     @classmethod
     def OUTPUT_TYPES(cls):
         return {
-            "output_image_path": ("STRING",)
+            "output_file_path": ("STRING",)  # Output path to the ICO file
         }
 
-    def run(self, input_image_path, icon_size):
-        if not input_image_path or not os.path.isfile(input_image_path):
-            raise ValueError("Invalid file path provided for the PNG image.")
+    @classmethod
+    def CATEGORY(cls):
+        return "Image Processing"  # Node category in the UI
 
-        # Load the PNG image using PIL
+    @classmethod
+    def FUNCTION(cls):
+        return "convert_to_ico"
+
+    def convert_to_ico(self, input_image, output_directory, icon_sizes, file_name):
+        # Ensure output directory exists
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
+        # Process icon sizes
         try:
-            image = Image.open(input_image_path)
-        except Exception as e:
-            raise ValueError(f"Failed to open the image. Error: {str(e)}")
+            sizes = [(int(size), int(size)) for size in icon_sizes.split(",") if size.isdigit()]
+        except ValueError:
+            raise ValueError("Icon sizes must be a comma-separated list of integers.")
 
-        # Ensure the image has an alpha channel (RGBA)
-        if image.mode != 'RGBA':
-            image = image.convert('RGBA')
+        if not sizes:
+            raise ValueError("No valid icon sizes provided.")
 
-        # Prepare the output file path with the .ico extension
-        output_file_path = os.path.splitext(input_image_path)[0] + '.ico'
+        # Convert input image from tensor to PIL format
+        image = Image.fromarray((input_image * 255).astype('uint8'))
 
-        # Convert and save the image as an ICO file
+        # Convert image to RGBA if required
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+
+        # Prepare output file path
+        output_file_path = os.path.join(output_directory, f"{file_name}.ico")
+
+        # Save as ICO with specified sizes
         try:
-            image.save(output_file_path, format='ICO', sizes=[(icon_size, icon_size)])
+            image.save(output_file_path, format="ICO", sizes=sizes)
         except Exception as e:
-            raise ValueError(f"Failed to save the ICO file. Error: {str(e)}")
+            raise ValueError(f"Failed to save ICO file: {str(e)}")
 
         return (output_file_path,)
 
-# Register the node with ComfyUI
-NODE_CLASS.register_node("PNGToICONode", PNGToICONode)
+
+
